@@ -1,11 +1,12 @@
-use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}};
+use crate::game::State;
 
 
 
-fn get_move_num(gamestate:State) -> i32 {
-    gamestate.possible_moves().length;
+
+pub fn get_move_num(gamestate:&State) -> i64 {
+    gamestate.possible_moves().len() as i64
 }
 
-fn get_fish_dif(gamestate:State, my_turn:i8) -> i32 {
-    my_turn
+pub fn get_fish_dif(gamestate:State, my_turn:i8) -> i32 {
+    my_turn.into()
 }
