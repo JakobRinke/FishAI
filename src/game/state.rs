@@ -73,6 +73,17 @@ impl State {
             .filter(move |(_, f)| f.penguin() == Some(team))
     }
 
+    pub fn opponent_pieces(&self) -> impl Iterator<Item=(Vec2<Doubled>, Field)> {
+        let team = self.current_team().opponent();
+        self.board.fields()
+            .filter(move |(_, f)| f.penguin() == Some(team))
+    }
+
+    pub fn pieces_of(&self, team: Team) -> impl Iterator<Item=(Vec2<Doubled>, Field)> {
+        self.board.fields()
+            .filter(move |(_, f)| f.penguin() == Some(team))
+    }
+
     /// Whether the current team has placed all of its penguins.
     pub fn penguins_placed(&self) -> bool {
         self.current_pieces().count() == PENGUINS_PER_TEAM
@@ -100,6 +111,19 @@ impl State {
     pub fn possible_moves(&self) -> Vec<Move> {
         if self.penguins_placed() {
             self.current_pieces()
+                .flat_map(|(c, _)| self.board.possible_moves_from(c))
+                .collect()
+        } else {
+            self.board.fields()
+                .filter(|(_, f)| f.fish() == 1)
+                .map(|(c, _)| Move::placing(c))
+                .collect()
+        }
+    }
+
+    pub fn opponent_moves(&self) -> Vec<Move> {
+        if self.penguins_placed() {
+            self.opponent_pieces()
                 .flat_map(|(c, _)| self.board.possible_moves_from(c))
                 .collect()
         } else {
