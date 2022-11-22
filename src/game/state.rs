@@ -135,7 +135,7 @@ impl State {
     }
 
     /// Performs the given move.
-    pub fn perform(&mut self, m: Move) {
+    pub fn perform(&mut self, m: Move) -> usize {
         let to = m.to();
         let team = self.current_team();
         if let Some(from) = m.from() {
@@ -149,11 +149,13 @@ impl State {
             debug_assert!(self.current_pieces().count() < PENGUINS_PER_TEAM, "Cannot place after all penguins have been placed");
             debug_assert!(self.board[to].fish() == 1, "Cannot place on more than one fish");
         }
-        self.fish[team.index()] += self.board[to].place(team);
+        let f = self.board[to].place(team);
+        self.fish[team.index()] += f;
         self.last_move = Some(m);
         self.turn += 1;
+        return f
     }
-
+    
     /// Fetches the state after the given move.
     pub fn child(&self, m: Move) -> Self {
         let mut next = *self;
