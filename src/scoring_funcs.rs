@@ -4,12 +4,12 @@ use crate::game::{State, Team};
 
 
 pub fn get_move_num(gamestate:&State, my_turn:i32) -> i32 {
-    my_turn * ((gamestate.possible_moves().len() - gamestate.opponent_moves().len()) as i32)
+    my_turn * (gamestate.possible_moves().len() as i32 - gamestate.opponent_moves().len() as i32)
 }
 
 pub fn get_fish_dif(gamestate:&State, my_turn:i32) -> i32 {
-    my_turn * ( (gamestate.fish(gamestate.current_team()) - 
-                gamestate.fish(gamestate.current_team().opponent())) as i32)
+    my_turn * ( gamestate.fish(gamestate.current_team()) as i32 - 
+                gamestate.fish(gamestate.current_team().opponent()) as i32)
 }
 
 pub fn get_turn(gamestate:&State) -> i32 {
@@ -42,7 +42,9 @@ pub fn get_pengu(gamestate:&State, my_turn:i32) -> i32 {
 
 pub fn evaluate(gamestate:&State, my_turn:i32, args:&Vec<f32>) -> f32 {
     let lateness = 40.0 / get_fish_left(gamestate) as f32;
-    return    args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
-            + args[2] * lateness.powf(args[3]) * get_move_num(gamestate, my_turn) as f32
-            + args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32;
+    return  (   
+          args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
+        + args[2] * lateness.powf(args[3]) * get_move_num(gamestate, my_turn) as f32
+        + args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32
+    );
 }

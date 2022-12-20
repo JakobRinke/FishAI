@@ -155,6 +155,14 @@ impl State {
         self.turn += 1;
         return f
     }
+
+    pub fn undo_move(&mut self, m:Move, f:usize, team: Team) {
+        self.board[m.from().unwrap()].place_png(team);
+        self.board[m.to()].unplace(f);
+        self.fish[team.index()] -= f;
+        self.turn -= 1;
+    } 
+
     
     /// Fetches the state after the given move.
     pub fn child(&self, m: Move) -> Self {

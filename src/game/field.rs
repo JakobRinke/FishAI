@@ -33,6 +33,7 @@ impl Field {
         Self { penguin: Some(team), ..Self::EMPTY }
     }
 
+
     /// Whether the field is empty.
     pub fn is_empty(self) -> bool { self.fish == 0 && self.penguin.is_none() }
 
@@ -42,15 +43,30 @@ impl Field {
     /// The number of fish on this field.
     pub fn fish(self) -> usize { self.fish }
 
+    /// Changes number of fish on this field.
+    pub fn set_fish(&mut self, f:usize) { *self = Self::with_fish(f); }
+
     /// The penguin on this field.
     pub fn penguin(self) -> Option<Team> { self.penguin }
 
     /// Replaces the fish on this field by a penguin, returning the number of fish.
     pub fn place(&mut self, team: Team) -> usize {
         let fish = self.fish;
-        *self = Self::with_penguin(team);
+        self.penguin =Some(team);
+        self.fish = 0;
         fish
     }
+
+    pub fn place_png(&mut self, team: Team) {
+        self.penguin =Some(team);
+        self.fish = 0;
+    }
+
+    pub fn unplace(&mut self, f:usize) {
+        self.penguin = None;
+        self.fish = f;
+    }
+
 }
 
 impl From<usize> for Field {
