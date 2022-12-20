@@ -11,7 +11,7 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
 
 
     if gamestate.current_team().index()== my_team.index() {
-        my_turn = 0;
+        my_turn = 1;
     }
 
     if gamestate.is_over() {
@@ -29,10 +29,9 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     let possible_moves = gamestate.possible_moves();
     let mut best_move =  possible_moves[0];
     let mut value = 0.0;
-    if my_turn == 0 {
+    if my_turn == 1 {
         value = -INFINITY;
         for m in possible_moves {
-            let from = m.from().unwrap();
             let f = gamestate.perform(m);
             let l = minimax(gamestate, my_team, alpha, beta, args, depth-1).1;
             gamestate.undo_move(m, f, my_team);
@@ -48,12 +47,10 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     }
     else {
         value = INFINITY;
-
         for m in possible_moves {
                 let f = gamestate.perform(m);
                 let l = minimax(gamestate, my_team, alpha, beta, args, depth-1).1;
                 gamestate.undo_move(m, f, my_team.opponent());
-                //println!("fl: {}", scoring_funcs::get_fish_left(gamestate));
                 if  l < value {
                     best_move = m;
                     value = l;
