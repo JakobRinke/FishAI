@@ -1,6 +1,6 @@
 use std::{f32::INFINITY, fmt::Debug};
 
-use crate::{game::{State, Team, Move, self}, scoring_funcs::{self, evaluate}};
+use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate}};
 
 
 
@@ -8,20 +8,19 @@ use crate::{game::{State, Team, Move, self}, scoring_funcs::{self, evaluate}};
 
 pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32) -> (Option<Move>, f32) {
     let mut my_turn = -1;
-
-
     if gamestate.current_team().index()== my_team.index() {
         my_turn = 1;
     }
-
-    if gamestate.is_over() {
+    if gamestate.is_over() 
+    {
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, INFINITY)
+            return (None, INFINITY);
         }
         else {
             return (None, -INFINITY);
-        }
-    }
+        };
+    } 
+    
     if depth <= 0 {
         return (None, evaluate(gamestate, my_turn, args));
     }

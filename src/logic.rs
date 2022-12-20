@@ -27,8 +27,10 @@ impl GameClientDelegate for OwnLogic {
         else {
             let mut s = state.clone();
             let k = minimax(&mut s, _my_team, -INFINITY, INFINITY, &b, 5).0;
+            info!("Chose move {}", k.unwrap());
             return k.unwrap();
         }
+
         
     }
 
