@@ -1,4 +1,4 @@
-use std::{f32::INFINITY, fmt::Debug};
+use std::{f32::INFINITY};
 
 use crate::{game::{State, Team, Move, self}, scoring_funcs::{self, evaluate}};
 
@@ -6,14 +6,11 @@ use crate::{game::{State, Team, Move, self}, scoring_funcs::{self, evaluate}};
 
 
 
-pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32) -> (Option<Move>, f32) {
+pub fn minimax(gamestate:&State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32) -> (Option<Move>, f32) {
     let mut my_turn = -1;
-
-
     if gamestate.current_team().index()== my_team.index() {
-        my_turn = 0;
+        my_turn = 1;
     }
-
     if gamestate.is_over() {
         if gamestate.winner().unwrap().index() == my_team.index() {
             return (None, INFINITY)
@@ -32,10 +29,9 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     if my_turn == 0 {
         value = -INFINITY;
         for m in possible_moves {
-            let from = m.from().unwrap();
-            let f = gamestate.perform(m);
-            let l = minimax(gamestate, my_team, alpha, beta, args, depth-1).1;
-            gamestate.undo_move(m, f, my_team);
+            let mut new_board = gamestate.clone();
+            new_board.perform(m);
+            let l = minimax(&new_board, my_team, alpha, beta, args, depth-1).1;
             if  l > value {
                 best_move = m;
                 value = l;
@@ -48,20 +44,18 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     }
     else {
         value = INFINITY;
-
         for m in possible_moves {
-                let f = gamestate.perform(m);
-                let l = minimax(gamestate, my_team, alpha, beta, args, depth-1).1;
-                gamestate.undo_move(m, f, my_team.opponent());
-                //println!("fl: {}", scoring_funcs::get_fish_left(gamestate));
-                if  l < value {
-                    best_move = m;
-                    value = l;
-                }
-                beta = f32::min(beta, value);
-                if alpha >= beta {
-                    break;
-                }  
+            let mut new_board = gamestate.clone();
+            new_board.perform(m);
+            let l = minimax(&new_board, my_team, alpha, beta, args, depth-1).1;
+            if  l < value {
+                best_move = m;
+                value = l;
+            }
+            beta = f32::min(beta, value);
+            if alpha >= beta {
+                break;
+            }
         }
     }
 
