@@ -1,7 +1,6 @@
 use log::{info, debug};
 use rand::seq::SliceRandom;
 use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}, minimax::minimax};
-use socha_client_2023::scoring_funcs::*;
 use std::{f32::INFINITY};
 
 
@@ -26,7 +25,7 @@ impl GameClientDelegate for OwnLogic {
         }
         else {
             let mut s = state.clone();
-            let k = minimax(&mut s, _my_team, -INFINITY, INFINITY, &b, 5).0;
+            let k = minimax(&mut s, _my_team, -INFINITY, INFINITY, &b, 4).0;
             info!("Chose move {}", k.unwrap());
             return k.unwrap();
         }
