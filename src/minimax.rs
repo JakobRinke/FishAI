@@ -11,6 +11,7 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     if gamestate.current_team().index()== my_team.index() {
         my_turn = 1;
     }
+    
     if gamestate.is_over() 
     {
         if gamestate.winner().unwrap().index() == my_team.index() {
