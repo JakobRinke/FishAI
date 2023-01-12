@@ -1,4 +1,4 @@
-use std::{f32::INFINITY, fmt::Debug};
+use std::{f32::INFINITY};
 
 use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate}};
 
@@ -28,7 +28,7 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     
     let possible_moves = gamestate.possible_moves();
     let mut best_move =  possible_moves[0];
-    let mut value = 0.0;
+    let mut value;
     if my_turn == 1 {
         value = -INFINITY;
         for m in possible_moves {
