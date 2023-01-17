@@ -1,6 +1,6 @@
 use log::{info, debug};
 use rand::seq::SliceRandom;
-use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}, minimax::minimax};
+use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}, minimax::{minimax, dyn_max}};
 use std::{f32::INFINITY};
 use socha_client_2023::scoring_funcs::*;
 
@@ -15,7 +15,7 @@ impl GameClientDelegate for OwnLogic {
         
         //let a: &[f32] = &[2.3465499896565225, 0.9509269204004758, -0.6819216789064733, -0.5364894515536918, 2.2913894724952417, 0.2864972300261446];
         //let a: &[f32] = &[3.9557836482982456, 0.4177128264965727, -0.7039701243668675, -1.6635912470787138, -1.578680770902127, 0.22007119163660083];
-        let a: &[f32] = &[4.135102895853603, -2.8017075937684055, 0.5253584493618249, 1.435609120279965, -2.899542746951548, -0.09057006397037526], [1.9990893533772456, 1.1436826798312507, -2.667760360846257, -1.0703560108151877, 1.371484988193023, -4.25003987430821];
+        let a: &[f32] = &[4.135102895853603, -2.8017075937684055, 0.5253584493618249, 1.435609120279965, -2.899542746951548, -0.09057006397037526];
 
         let b = a.to_vec();
         info!("round: {}", state.turn());
@@ -30,10 +30,9 @@ impl GameClientDelegate for OwnLogic {
         }
         else {
             let mut s = state.clone();
-            let k = minimax(&mut s, _my_team, -INFINITY, INFINITY, &b, 4);
+            let k = dyn_max(&mut s, _my_team, &b);
             //info!("Chose move {}", k.unwrap());
-            info!("score_after : {}", evaluate(state, 1, &b));
-            return k.0.unwrap();
+            return k.unwrap();
         }
 
         
