@@ -4,7 +4,7 @@ use arrayvec::ArrayVec;
 
 use crate::util::{Element, Error, Result};
 
-use super::{Field, BOARD_FIELDS, Vec2, Direct, BOARD_SIZE, Move, Doubled, Team};
+use super::{Field, BOARD_FIELDS, Vec2, Direct, BOARD_SIZE, Move, Doubled, Team, field};
 
 // Ported from https://github.com/software-challenge/backend/blob/a3145a91749abb73ca5ffd426fd2a77d9a90967a/plugin/src/main/kotlin/sc/plugin2023/Board.kt
 
@@ -86,7 +86,11 @@ impl Board {
         self.fields()
             .filter_map(|(c, f)| f.penguin().map(|p| (c, p)))
     }
+
+   
+
 }
+
 
 impl<V> Index<V> for Board where V: Copy + Into<Vec2<Doubled>> {
     type Output = Field;
