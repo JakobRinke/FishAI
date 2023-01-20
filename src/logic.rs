@@ -1,6 +1,6 @@
 use log::{info, debug};
 use rand::seq::SliceRandom;
-use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}, minimax::{minimax, dyn_max}};
+use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}, minimax::{minimax, dyn_max, find_best_start_move}};
 use std::{f32::INFINITY};
 use socha_client_2023::scoring_funcs::*;
 
@@ -22,9 +22,7 @@ impl GameClientDelegate for OwnLogic {
         info!("score : {}", evaluate(state, 1, &b));
 
         if state.turn() <= 8 {
-            let chosen_move = *state.possible_moves()
-            .choose(&mut rand::thread_rng())
-            .expect("No move found!");
+            let chosen_move = find_best_start_move( *state);
             info!("Chose move {}", chosen_move);
             return chosen_move;
         }

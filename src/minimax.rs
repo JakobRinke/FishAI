@@ -1,7 +1,7 @@
 use std::{f32::INFINITY, vec};
 use log::info;
 
-use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate}};
+use crate::{game::{State, Team, Move, self, Vec2}, scoring_funcs::{ evaluate}};
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
@@ -111,7 +111,49 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
         controlcop.reverse();
         return (Some(best_move), value, controlcop);
     }
-
-    
-  
 } 
+
+
+const CENTERVEC: i32 = 7;
+
+
+pub fn find_best_start_move(gamestate: State) -> Move {
+    let possible = gamestate.possible_moves();
+    let mut current_best = possible[0];
+    let mut current_max = -INFINITY;
+    for m in possible {
+        let cost = get_move_cost_diff(gamestate, m);
+        if cost > current_max {
+            current_max = cost;
+            current_best = m;
+        }
+    }
+    info!("{}", current_best.to());
+    current_best
+}
+
+fn get_move_cost_diff(gamestate: State, m:Move) -> f32 {
+    let mut cost = 0.0;
+
+    /*
+     for k in gamestate.current_pieces() {
+        cost = f32::min(cost, f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32))
+        }
+    for k in gamestate.opponent_pieces() {
+        cost = f32::min(cost, f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32))
+    }
+    */
+   
+    /*
+         for k in gamestate.current_pieces() {
+            cost += f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32)
+            }
+        for k in gamestate.opponent_pieces() {
+            cost += f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32)
+        }
+        cost -= 70.0 * f32::sqrt(((CENTERVEC - m.to().x).pow(2) + (CENTERVEC - m.to().y).pow(2)) as f32) ;
+
+     */
+   
+    return cost;
+}
