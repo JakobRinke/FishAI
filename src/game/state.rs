@@ -157,10 +157,14 @@ impl State {
     }
 
     pub fn undo_move(&mut self, m:Move, f:usize, team: Team) {
-        self.board[m.from().unwrap()].place_png(team);
+        if let Some(from) = m.from() {
+            self.board[from].place_png(team);
+        }
         self.board[m.to()].unplace(f);
         self.fish[team.index()] -= f;
         self.turn -= 1;
+
+        
     } 
 
     

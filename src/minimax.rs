@@ -5,7 +5,7 @@ use crate::{game::{State, Team, Move, self, Vec2}, scoring_funcs::{ evaluate}};
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
-const break_time:u128= 150;
+const break_time:u128= 100;
 
 
 
@@ -16,9 +16,9 @@ pub fn dyn_max(gamestate:&mut State, my_team:Team, args:&Vec<f32>) -> Option<Mov
     let mut controlfirst:Vec<usize> = (0..gamestate.possible_moves().len()).collect();
     let mut curdepth = 0;
     let start = Instant::now();
-    while start.elapsed().as_millis() < break_time && curdepth < 50 {
+    while start.elapsed().as_millis() < break_time && curdepth < 50 && (curdepth < 6 || gamestate.turn() > 8)  {
         curdepth+=1;
-        (curmove, _, controlfirst) = minimax(gamestate, my_team, -INFINITY, INFINITY, args, curdepth, controlfirst)
+        (curmove, _, controlfirst) = minimax(gamestate, my_team, -INFINITY, INFINITY, args, curdepth, controlfirst);
     }
     info!("Did Depth: {}", curdepth);
     return curmove;
@@ -144,16 +144,15 @@ fn get_move_cost_diff(gamestate: State, m:Move) -> f32 {
     }
     */
    
-    /*
+
          for k in gamestate.current_pieces() {
             cost += f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32)
             }
         for k in gamestate.opponent_pieces() {
             cost += f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32)
         }
-        cost -= 70.0 * f32::sqrt(((CENTERVEC - m.to().x).pow(2) + (CENTERVEC - m.to().y).pow(2)) as f32) ;
+        cost -= 1000.0 * f32::sqrt(((CENTERVEC - m.to().x).pow(2) + (CENTERVEC - m.to().y).pow(2)) as f32) ;
 
-     */
    
     return cost;
 }
