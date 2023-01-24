@@ -1,26 +1,44 @@
-use std::{f32::INFINITY, vec};
+use std::{f32::INFINITY, vec, thread, time::Duration, sync::mpsc::{self}};
 use log::info;
 
-use crate::{game::{State, Team, Move, self, Vec2}, scoring_funcs::{ evaluate}};
+use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate}};
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
-const break_time:u128= 100;
+const BREAK_TIME:u128= 500;
 
 
 
 
-pub fn dyn_max(gamestate:&mut State, my_team:Team, args:&Vec<f32>) -> Option<Move>
+pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
 {
+    let start = Instant::now();
+
     let mut curmove:Option<Move>= None;
     let mut controlfirst:Vec<usize> = (0..gamestate.possible_moves().len()).collect();
     let mut curdepth = 0;
-    let start = Instant::now();
-    while start.elapsed().as_millis() < break_time && curdepth < 50 && (curdepth < 6 || gamestate.turn() > 8)  {
-        curdepth+=1;
-        (curmove, _, controlfirst) = minimax(gamestate, my_team, -INFINITY, INFINITY, args, curdepth, controlfirst);
+
+    while start.elapsed().as_millis() < BREAK_TIME && curdepth < 30 { 
+        let (mtx, mrx) = mpsc::channel();
+        let (stx, srx) = mpsc::channel();
+        let args_c = args.clone();
+        let mut cf = controlfirst.clone();
+        thread::spawn(move || {
+            let (m, _, cf) = minimax(&mut (gamestate.clone()), my_team, -INFINITY, INFINITY, &args_c, curdepth, cf);
+            mtx.send(m);
+            stx.send(cf)
+        });
+        while start.elapsed().as_millis() < BREAK_TIME {
+            let m = mrx.recv_timeout(Duration::new(0, 50*1000));
+            if !m.is_err() {
+                curdepth+=1;
+                curmove = m.unwrap();
+                controlfirst = srx.recv().unwrap();
+                break;
+            } 
+        }
     }
-    info!("Did Depth: {}", curdepth);
+    info!("depth: {}", curdepth);
     return curmove;
 }
 

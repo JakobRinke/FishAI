@@ -24,12 +24,12 @@ impl GameClientDelegate for OwnLogic {
         if state.turn() <= 8 {
            // let chosen_move = find_best_start_move( *state);
             let mut s = state.clone();
-            let chosen_move = dyn_max(&mut s, _my_team, &b);
+            let chosen_move = dyn_max( s, _my_team, b);
             return chosen_move.unwrap();
         }
         else {
             let mut s = state.clone();
-            let k = dyn_max(&mut s, _my_team, &b);
+            let k = dyn_max(s, _my_team, b);
             //info!("Chose move {}", k.unwrap());
             return k.unwrap();
         }
