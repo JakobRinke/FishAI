@@ -1,4 +1,4 @@
-use crate::game::{State, Team};
+use crate::game::{State, Team, self};
 
 
 
@@ -17,18 +17,17 @@ pub fn get_turn(gamestate:&State) -> i32 {
 }
 
 pub fn get_fish_left(gamestate:&State) -> i32 {
-    let mut out = 0;
-    for k in gamestate.board().fields() {
-        out += k.1.fish() as i32;
-    }
-    out
+    return gamestate.get_fish_left() as i32;
 }
 
+
+// Optimize
 pub fn get_moveable_peguins(gamestate:&State, team:Team) -> i32 {
     let pingus = gamestate.pieces_of(team);
+    let board = gamestate.board();
     let mut d = 0;
     for position in pingus {
-        if gamestate.board().possible_moves_from(position.0).count() > 0 {
+        if board.possible_moves_from(position.0).count() > 0 {
             d += 1;
         }
     }

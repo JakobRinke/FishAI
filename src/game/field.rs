@@ -44,7 +44,7 @@ impl Field {
     pub fn fish(self) -> usize { self.fish }
 
     /// Changes number of fish on this field.
-    pub fn set_fish(&mut self, f:usize) { *self = Self::with_fish(f); }
+    pub fn set_fish(&mut self, f:usize) { self.fish = f;  }
 
     /// The penguin on this field.
     pub fn penguin(self) -> Option<Team> { self.penguin }

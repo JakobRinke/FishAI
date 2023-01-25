@@ -4,7 +4,7 @@ use arrayvec::ArrayVec;
 
 use crate::util::{Element, Error, Result};
 
-use super::{Board, Move, Team, PENGUINS_PER_TEAM, TEAMS, Vec2, Field, Doubled, BOARD_FIELDS};
+use super::{Board, Move, Team, PENGUINS_PER_TEAM, TEAMS, Vec2, Field, Doubled, BOARD_FIELDS, board};
 
 // Ported from https://github.com/software-challenge/backend/blob/a3145a91749abb73ca5ffd426fd2a77d9a90967a/plugin/src/main/kotlin/sc/plugin2023/GameState.kt
 
@@ -21,6 +21,8 @@ pub struct State {
     last_move: Option<Move>,
     /// The starting team.
     start_team: Team,
+    // fish amount 
+    fish_left : usize
 }
 
 impl State {
@@ -32,6 +34,8 @@ impl State {
 
     /// Fetches the fish for the given team.
     pub fn fish(&self, team: Team) -> usize { self.fish[team.index()] }
+
+    pub fn get_fish_left(&self) -> usize { self.fish_left }
 
     /// Fetches the most recent move.
     pub fn last_move(&self) -> Option<Move> { self.last_move }
@@ -153,6 +157,7 @@ impl State {
         self.fish[team.index()] += f;
         self.last_move = Some(m);
         self.turn += 1;
+        self.fish_left -= f;
         return f
     }
 
@@ -162,9 +167,8 @@ impl State {
         }
         self.board[m.to()].unplace(f);
         self.fish[team.index()] -= f;
-        self.turn -= 1;
-
-        
+        self.fish_left += f; 
+        self.turn -= 1;   
     } 
 
     
@@ -180,6 +184,13 @@ impl TryFrom<&Element> for State {
     type Error = Error;
 
     fn try_from(elem: &Element) -> Result<Self> {
+
+        let mut out:usize = 0;
+        let board:Board = elem.child_by_name("board")?.try_into()?; 
+        for k in board.fields() {
+            out += k.1.fish();
+        }
+
         Ok(State {
             board: elem.child_by_name("board")?.try_into()?,
             turn: elem.attribute("turn")?.parse()?,
@@ -190,6 +201,7 @@ impl TryFrom<&Element> for State {
                 .map_err(|e| Error::from(format!("State has wrong number of fish teams: {:?}", e)))?,
             last_move: elem.child_by_name("lastMove").ok().and_then(|m| m.try_into().ok()),
             start_team: elem.child_by_name("startTeam")?.content().parse()?,
+            fish_left: out,
         })
     }
 }
@@ -303,6 +315,7 @@ mod tests {
             fish: [1, 0],
             last_move: Some(Move::placing(Vec2::<Doubled>::new(13, 5))),
             start_team: Team::One,
+            fish_left: 100
         });
     }
 
@@ -324,6 +337,7 @@ mod tests {
             fish: [10, 20], // Irrelevant
             last_move: None, // Irrelevant
             start_team: Team::One,
+            fish_left: 100,
         };
         assert_eq!(state.possible_moves(), vec![
             Move::between(Vec2::<Doubled>::new(8, 4), Vec2::<Doubled>::new(10, 4)),
