@@ -40,7 +40,7 @@ pub fn get_pengu(gamestate:&State, my_turn:i32) -> i32 {
 }
 
 pub fn evaluate(gamestate:&State, my_turn:i32, args:&Vec<f32>) -> f32 {
-    let lateness = 40.0 / get_fish_left(gamestate) as f32;
+    let lateness = 40.0 / gamestate.turn() as f32;
     return  args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
         +   args[2] * lateness.powf(args[3]) * get_move_num(gamestate, my_turn) as f32
         +   args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32;
