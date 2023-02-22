@@ -1,8 +1,5 @@
 use crate::game::{State, Team, self};
 
-
-
-
 pub fn get_move_num(gamestate:&State, my_turn:i32) -> i32 {
     my_turn * (gamestate.possible_moves().len() as i32 - gamestate.opponent_moves().len() as i32)
 }
@@ -19,7 +16,6 @@ pub fn get_turn(gamestate:&State) -> i32 {
 pub fn get_fish_left(gamestate:&State) -> i32 {
     return gamestate.get_fish_left() as i32;
 }
-
 
 // Optimize
 pub fn get_moveable_peguins(gamestate:&State, team:Team) -> i32 {
