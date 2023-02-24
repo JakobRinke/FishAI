@@ -14,22 +14,28 @@ impl GameClientDelegate for OwnLogic {
     fn request_move(&mut self, state: &State, _my_team: Team) -> Move {
         
         // 0.46; 500: 0.48
-        let a: &[f32] = &[3.0, -0.5, 0.3, 1.9, 7.3, 0.5, 1.8, 0.4];
+        //let a: &[f32] = &[3.0, -0.5, 0.3, 1.9, 7.3, 0.5, 0., 0., 0.0, 0.0];
 
 
         // ???
-        // let a: &[f32] = &[2.4, -1.5, 0.35, 1.1, 1.1, 0.5, 1.8, 0.4];
+        let a: &[f32] = &[  
+                            2.2,  -1.2, 
+                            0.55,   0.7, 
+                            4.3,   0.5, 
+                            2.1,  -0.5, 
+                            1.3,   0.2
+        ];
 
 
         let b = a.to_vec();
         info!("round: {}", state.turn());
         info!("score : {}", evaluate(state, 1, &b));
 
-        if state.turn() <= 8 {
-           // let chosen_move = find_best_start_move( *state);
+        if state.turn() <= 7 {
+            //let chosen_move = find_best_start_move( *state);
             let mut s = state.clone();
-            let chosen_move = dyn_max( s, _my_team, b);
-            return chosen_move.unwrap();
+            let chosen_move = dyn_max( s, _my_team, b).unwrap();
+            return chosen_move
         }
         else {
             let mut s = state.clone();

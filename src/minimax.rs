@@ -153,23 +153,25 @@ pub fn find_best_start_move(gamestate: State) -> Move {
 fn get_move_cost_diff(gamestate: State, m:Move) -> f32 {
     let mut cost = 0.0;
 
-    /*
+    
      for k in gamestate.current_pieces() {
         cost = f32::min(cost, f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32))
         }
     for k in gamestate.opponent_pieces() {
         cost = f32::min(cost, f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32))
     }
-    */
+    
    
-
-         for k in gamestate.current_pieces() {
+    /*
+         k in gamestate.current_pieces() {
             cost += f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32)
-            }
+        }
         for k in gamestate.opponent_pieces() {
             cost += f32::sqrt(((k.0.x - m.to().x).pow(2) + (k.0.y - m.to().y)).pow(2)  as f32)
         }
-        cost -= 1000.0 * f32::sqrt(((CENTERVEC - m.to().x).pow(2) + (CENTERVEC - m.to().y).pow(2)) as f32) ;
+     */
+   
+    cost -= 0.4 * f32::sqrt(((CENTERVEC - m.to().x).pow(2) + (CENTERVEC - m.to().y).pow(2)) as f32) ;
 
    
     return cost;
