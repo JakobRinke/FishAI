@@ -1,3 +1,5 @@
+use std::{collections::HashMap, cmp::{max, min}};
+
 use log::info;
 
 use crate::game::{State, Team, self, Vec2, Doubled};
@@ -49,20 +51,39 @@ pub fn get_field_control(gamestate:&State, field:Vec2<Doubled>, done:Vec<Vec2<Do
     return dn.to_vec();
 }
 
-pub fn get_controlled_fields_of(gamestate:&State, team:Team) -> i32 {
-    let pingus = gamestate.pieces_of(team);
+pub fn get_controlled_fields_of(gamestate:&State, team1:Team, team2:Team) -> i32 {
+    let pingus1 = gamestate.pieces_of(team1);
+    let pingus2 = gamestate.pieces_of(team2);
+    let mut hm = HashMap::new();
     let mut count = 0;
-    for position in pingus {
-        let mut done:Vec<Vec2<Doubled>> = vec![];
-        done = get_field_control(gamestate, position.0, done);
-        count+=done.len();
+    for position in pingus1 {
+        let d=get_field_control(gamestate, position.0, vec![]) ;
+        for field in d {
+           if (hm.contains_key(&field)) {
+            hm.insert(field, hm.get(&field).unwrap()+1);
+           } else {
+            hm.insert(field, 1);
+           }
+        }
     }
+    for position in pingus2 {
+        let d=get_field_control(gamestate, position.0, vec![]) ;
+        for field in d {
+            if (hm.contains_key(&field)) {
+             hm.insert(field, hm.get(&field).unwrap()-1);
+            } else {
+             hm.insert(field, -1);
+            }
+         }
+    }
+    for key in hm.keys() {
+        count += max(-1, min(1, *hm.get(key).unwrap()));
+    }  
     return count as i32;
 }
 
 pub fn get_controlled_fields(gamestate:&State, my_turn:i32) -> f32 {
-    return (my_turn * (get_controlled_fields_of(gamestate, gamestate.current_team())
-             - get_controlled_fields_of(gamestate, gamestate.current_team().opponent()))) as f32;
+    return (my_turn * get_controlled_fields_of(gamestate, gamestate.current_team(), gamestate.current_team().opponent()))as f32;
 }
 
 

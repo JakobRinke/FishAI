@@ -14,11 +14,11 @@ impl GameClientDelegate for OwnLogic {
     fn request_move(&mut self, state: &State, _my_team: Team) -> Move {
         
         // 0.46; 500: 0.48
-        //let a: &[f32] = &[3.0, -0.5, 0.3, 1.9, 7.3, 0.5, 0., 0.];
+        let a: &[f32] = &[3.0, -0.5, 0.3, 1.9, 7.3, 0.5, 1.8, 0.4];
 
 
         // ???
-        let a: &[f32] = &[3.0, -0.35, 0.3, 1.9, 4.3, 0.5, 0.25, 0.1];
+        // let a: &[f32] = &[2.4, -1.5, 0.35, 1.1, 1.1, 0.5, 1.8, 0.4];
 
 
         let b = a.to_vec();
