@@ -91,10 +91,13 @@ pub fn get_controlled_fish(gamestate:&State, my_turn:i32) -> f32 {
 pub fn get_controlled_fields_of(gamestate:&State, team:Team) -> i32 {
     let pingus1 = gamestate.pieces_of(team);
     let mut count = 0;
+    let mut done = vec![];
     for position in pingus1 {
-        for f in get_field_control(gamestate, position.0, vec![]) {
-            count+=gamestate.board()[f].fish();
-        }
+        done = get_field_control(gamestate, position.0, done);
+    }
+
+    for f in done {
+        count+=gamestate.board()[f].fish();
     }
     return count as i32;
 }
@@ -112,8 +115,8 @@ pub fn evaluate(gamestate:&State, my_turn:i32, args:&Vec<f32>) -> f32 {
     return  args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
         +   args[2] * lateness.powf(args[3]) * get_move_num(gamestate, my_turn) as f32
         +   args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32
-        +   args[6] * lateness.powf(args[7]) * get_controlled_fish(gamestate, my_turn) as f32
-        +   args[8] * lateness.powf(args[9]) * get_controlled_fields(gamestate, my_turn) as f32
+        //+   args[6] * lateness.powf(args[7]) * get_controlled_fish(gamestate, my_turn) as f32
+        //+   args[8] * lateness.powf(args[9]) * get_controlled_fields(gamestate, my_turn) as f32
         
         ;
 }
