@@ -1,5 +1,4 @@
 mod logic;
-
 use std::str::FromStr;
 use clap::Parser;
 use simplelog::{SimpleLogger, Config};
