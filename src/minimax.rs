@@ -33,6 +33,9 @@ pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
             if !m.is_err() {
                 curdepth+=1;
                 curmove = m.unwrap();
+                if start.elapsed().as_millis() > BREAK_TIME {
+                    break;
+                }
                 controlfirst = srx.recv().unwrap();
                 break;
             } 
