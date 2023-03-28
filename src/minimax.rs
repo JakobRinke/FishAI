@@ -29,7 +29,7 @@ pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
             stx.send(cf)
         });
         while start.elapsed().as_millis() < BREAK_TIME {
-            let m = mrx.recv_timeout(Duration::new(0, 50*1000));
+            let m = mrx.recv_timeout(Duration::new(0, 50));
             if !m.is_err() {
                 curdepth+=1;
                 curmove = m.unwrap();

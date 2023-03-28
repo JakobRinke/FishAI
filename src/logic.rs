@@ -39,7 +39,6 @@ impl GameClientDelegate for OwnLogic {
         else {
             let mut s = state.clone();
             let k = dyn_max(s, _my_team, b);
-            info!("ControlDiff: {}", get_controlled_fields(&s, 1));
             //info!("Chose move {}", k.unwrap());
             return k.unwrap();
         }
