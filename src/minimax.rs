@@ -50,7 +50,7 @@ pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
 
 
 
-pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32,mut controlfirst:Vec<usize>) -> (Option<Move>, f32, Vec<usize>) {
+pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32,controlfirst:Vec<usize>) -> (Option<Move>, f32, Vec<usize>) {
     let mut my_turn = -1;
     if gamestate.current_team().index()== my_team.index() {
         my_turn = 1;
