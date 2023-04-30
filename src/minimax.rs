@@ -5,7 +5,7 @@ use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate}};
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
-const BREAK_TIME:u128=1500;
+const BREAK_TIME:u128=500;
 
 
 

@@ -24,7 +24,7 @@ impl GameClientDelegate for OwnLogic {
         //let a: &[f32] = &[ 3.3,  -1.6, 0.78, 0.94, 7.3, 0.3, 2.6, -0.44, 1.6, 0.16 ];
 
         // 
-        let a: &[f32] = &[ 2.4,  -1.9, 0.78, 0.94, 7.3, 0.2, 2.6, -0.7, 1.6, 0.26 ];
+        let a: &[f32] = &[ 2.4,  -1.9, 1.3, 0.7, 7.3, 0.2, 2.8, -0.3, 1.8, 0.13 ];
 
         let b = a.to_vec();
         info!("round: {}", state.turn());
@@ -39,6 +39,7 @@ impl GameClientDelegate for OwnLogic {
         else {
             let mut s = state.clone();
             let k = dyn_max(s, _my_team, b);
+
             //info!("Chose move {}", k.unwrap());
             return k.unwrap();
         }

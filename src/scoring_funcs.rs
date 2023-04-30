@@ -51,43 +51,6 @@ pub fn get_field_control(gamestate:&State, field:Vec2<Doubled>, done:Vec<Vec2<Do
     return dn.to_vec();
 }
 
-pub fn get_controlled_fish_of(gamestate:&State, team1:Team, team2:Team) -> i32 {
-    let pingus1 = gamestate.pieces_of(team1);
-    let pingus2 = gamestate.pieces_of(team2);
-    let mut hm = HashMap::new();
-    let mut count = 0;
-    for position in pingus1 {
-        let d=get_field_control(gamestate, position.0, vec![]) ;
-        for field in d {
-           if (hm.contains_key(&field)) {
-            hm.insert(field, hm.get(&field).unwrap()+1);
-           } else {
-            hm.insert(field, 1);
-           }
-        }
-    }
-    for position in pingus2 {
-        let d=get_field_control(gamestate, position.0, vec![]) ;
-        for field in d {
-            if (hm.contains_key(&field)) {
-             hm.insert(field, hm.get(&field).unwrap()-1);
-            } else {
-             hm.insert(field, -1);
-            }
-         }
-    }
-    for key in hm.keys() {
-        count += max(-1, min(1, *hm.get(key).unwrap()));
-    }  
-    return count as i32;
-}
-
-pub fn get_controlled_fish(gamestate:&State, my_turn:i32) -> f32 {
-    return (my_turn * get_controlled_fish_of(gamestate, gamestate.current_team(), gamestate.current_team().opponent()))as f32;
-}
-
-
-
 pub fn get_controlled_fields_of(gamestate:&State, team:Team) -> i32 {
     let pingus1 = gamestate.pieces_of(team);
     let mut count = 0;
@@ -110,13 +73,57 @@ pub fn get_controlled_fields(gamestate:&State, my_turn:i32) -> f32 {
 }
 
 
+pub fn dj_activator(d:i32, f:usize) -> f32 {
+    f as f32/ (1. + f32::exp(d as f32)) 
+}
+
+pub fn add_field_levels(gamestate:&State, field:&Vec2<Doubled>,hm:&mut HashMap<Vec2<Doubled>, f32>, depth:i32) {
+    for new_field in gamestate.board().possible_moves_from(*field) {
+        let mut val = dj_activator(depth, gamestate.board()[new_field.to()].fish()); 
+        if !hm.contains_key(&new_field.to()) {
+            hm.insert(new_field.to(), val);
+            add_field_levels(gamestate, &new_field.to(), hm, depth+1)
+        } else {
+            if let Some(curval) = hm.get_mut(&new_field.to()) {
+                if *curval < val {
+                    *curval = val;
+                    add_field_levels(gamestate, &new_field.to(), hm, depth+1)
+                }
+            }
+        }
+    }
+}
+
+pub fn get_field_levels_of(gamestate:&State, team1:Team) -> f32{
+    let pingus1 = gamestate.pieces_of(team1);
+    let mut hm = HashMap::new();
+    for position in pingus1 {
+        add_field_levels(gamestate, &position.0, &mut hm, 1);
+    }
+    let mut count:f32 = 0.;
+    for key in hm.values() {
+        count+=*key;
+    }  
+    return count;
+}
+
+pub fn get_field_levels(gamestate:&State, my_turn:i32) -> f32 {
+    return (
+        my_turn as f32 * ( 
+                get_field_levels_of(gamestate, gamestate.current_team()) -
+                get_field_levels_of(gamestate, gamestate.current_team().opponent())
+    ));
+}
+
+
+
 pub fn evaluate(gamestate:&State, my_turn:i32, args:&Vec<f32>) -> f32 {
     let lateness = 40.0 / gamestate.turn() as f32;
     return  args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
-        +   args[2] * lateness.powf(args[3]) * get_move_num(gamestate, my_turn) as f32
+        +   args[2] * lateness.powf(args[3]) * get_field_levels(gamestate, my_turn) as f32
         +   args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32
-        //+   args[6] * lateness.powf(args[7]) * get_controlled_fish(gamestate, my_turn) as f32
-        //+   args[8] * lateness.powf(args[9]) * get_controlled_fields(gamestate, my_turn) as f32
+      //  +   args[6] * lateness.powf(args[7]) * get_controlled_fish(gamestate, my_turn) as f32
+        +   args[8] * lateness.powf(args[9]) * get_controlled_fields(gamestate, my_turn) as f32
         
         ;
 }
