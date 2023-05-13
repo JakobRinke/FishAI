@@ -1,11 +1,12 @@
 use std::{collections::HashMap, cmp::{max, min}};
 
 use log::info;
+use rand::seq::SliceRandom;
 
 use std::time::Instant;
 
 
-use crate::game::{State, Team, Vec2, Doubled};
+use crate::game::{State, Team, Vec2, Doubled, self};
 
 pub fn get_move_num(gamestate:&State, my_turn:i32) -> f32 {
     my_turn as f32  * (gamestate.possible_moves().len() as f32 - gamestate.opponent_moves().len() as f32)
@@ -98,18 +99,50 @@ pub fn get_field_levels(gamestate:&State, my_turn:i32) -> (f32, f32) {
 
 
 
-pub fn evaluate(gamestate:&State, my_turn:i32, args:&Vec<f32>) -> f32 {
+const TESTS: i32 = 100;
+pub fn get_game_sim(gamestate: &State, my_turn:i32) -> f32 {
+    let mut k = 0;
+    for _ in 0..TESTS {
+        k += randmax(&mut(gamestate.clone()), gamestate.current_team());
+    }
+    return (my_turn * k) as f32;
+}
+
+
+fn randmax(gamestate:&mut State, my_team:Team) -> i32 {
+    if gamestate.is_over() 
+    {
+        if gamestate.winner().is_none() {
+            return 0
+        }
+        else if gamestate.winner().unwrap().index() == my_team.index() {
+            return  1;
+        }
+        else {
+            return -1;
+        };
+    } 
+    let curteam = gamestate.current_team();
+    let possible_moves = gamestate.possible_moves();
+    let m =  *possible_moves.choose(&mut rand::thread_rng()).unwrap();
+    let f = gamestate.perform(m);
+    let d = randmax(gamestate, my_team);
+    gamestate.undo_move(m, f, curteam);
+    return d;
+}
+
+pub fn evaluate(gamestate:&mut State, my_turn:i32, args:&Vec<f32>) -> f32 {
     let lateness = 40.0 / gamestate.turn() as f32;
     let (levels, count) =  get_field_levels(gamestate, my_turn);
     return  args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
         +   args[2] * lateness.powf(args[3]) * levels
         +   args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32
-        //+   args[6] * lateness.powf(args[7]) * get_controlled_fish(gamestate, my_turn) as f32
-        +   args[8] * lateness.powf(args[9]) * count as f32
+        //+   args[6] * lateness.powf(args[7]) * get_game_sim(gamestate, my_turn) as f32;
+        //+   args[8] * lateness.powf(args[9]) * count
         ;
 }
 
-pub fn print_eval(gamestate:&State, my_turn:i32, args:&Vec<f32>) {
+pub fn print_eval(gamestate:&mut State, my_turn:i32, args:&Vec<f32>) {
 
     let (levels, count) =  get_field_levels(gamestate, my_turn);
 
@@ -117,8 +150,8 @@ pub fn print_eval(gamestate:&State, my_turn:i32, args:&Vec<f32>) {
     info!("Arg 1: {}", args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32);
     info!("Arg 2: {}", args[2] * lateness.powf(args[3]) * levels);
     info!("Arg 3: {}", args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32);
-        //+   args[6] * lateness.powf(args[7]) * get_controlled_fish(gamestate, my_turn) as f32
-    info!("Arg 5: {}", args[8] * lateness.powf(args[9]) * count);      
+    //info!("Arg 4: {}", args[6] * lateness.powf(args[7]) * get_game_sim(gamestate, my_turn) as f32);
+    //info!("Arg 5: {}", args[8] * lateness.powf(args[9]) * count);      
 }
 
 pub fn test_speed(gamestate:&State) {
@@ -126,8 +159,6 @@ pub fn test_speed(gamestate:&State) {
     test_speed_double(get_field_levels, gamestate);
     test_speed_single(get_pengu, gamestate);
 }
-
-
 
 fn test_speed_single(f:fn(gamestate:&State, my_turn:i32)->f32, gamestate:&State) {
     let now = Instant::now();
