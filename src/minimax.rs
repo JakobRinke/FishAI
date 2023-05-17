@@ -5,7 +5,7 @@ use crate::{game::{State, Team, Move, self}, scoring_funcs::{ evaluate, fast_eva
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
-const BREAK_TIME:u128=1400;
+const BREAK_TIME:u128=1000;
 
 
 
@@ -24,7 +24,7 @@ pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
         let args_c = args.clone();
         let mut cf = controlfirst.clone();
         thread::spawn(move || {
-            let (m, _, cf) = minimax(&mut (gamestate.clone()), my_team, -INFINITY, INFINITY, &args_c, curdepth, cf);
+            let (m, _, cf) = minimax2(&mut (gamestate.clone()), my_team, -INFINITY, INFINITY, &args_c, curdepth, 2, cf);
             mtx.send(m);
             stx.send(cf)
         });
@@ -308,7 +308,7 @@ pub fn evaluate_move(gamestate: &mut State, m:Move, my_turn:i32, args:&Vec<f32>)
 }
 
 
-const be:&[f32] = &[ 2.4,  -1.9, 1.3, 0.7, 7.3, 0.2, 2.8, -0.3, 1.8, 0.13 ];
+const be:&[f32] = &[ 3.3,  -1.6, 0.78, 0.94, 7.3, 0.3, 2.6, -0.44, 1.6, 0.16 ];
 pub fn fast_evaluate_move(gamestate: &mut State, m:Move, my_turn:i32) -> f32 {
     let t = gamestate.current_team();
     let f = gamestate.perform(m);

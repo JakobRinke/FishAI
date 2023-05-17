@@ -1,9 +1,14 @@
 mod logic;
+use std::path::Path;
 use std::str::FromStr;
 use clap::Parser;
 use simplelog::{SimpleLogger, Config};
 use log::LevelFilter;
 use socha_client_2023::client::{GameClient, DebugMode};
+use std::fs;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+
 
 use logic::OwnLogic;
 
@@ -29,7 +34,7 @@ struct Args {
     #[clap(short = 'D', long)]
     debug_writer: bool,
 }
-
+const filename:&str  ="gamedata.csv";
 fn main() {
     // Parse command line arguments
     let args = Args::parse();
@@ -42,6 +47,16 @@ fn main() {
         debug_reader: args.debug_reader,
         debug_writer: args.debug_writer,
     };
+
+    
+    if !Path::new(&filename).exists() {
+        let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .append(true)
+        .open(&filename)
+        .unwrap();
+    }
 
     let client = GameClient::new(OwnLogic, debug_mode, args.reservation);
     let _result = client.connect(&args.host, args.port).expect("Error while running client.");

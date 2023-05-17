@@ -89,7 +89,7 @@ pub fn get_pengu_mobility_of(gamestate:&State, team1:Team) -> f32 {
 }
 
 
-pub fn get_field_levels_of(gamestate:&State, team1:Team) -> (f32) {
+pub fn get_field_levels_of(gamestate:&State, team1:Team) -> (f32, f32) {
     let pingus1 = gamestate.pieces_of(team1);
     let mut this_fields:Vec<Vec2<Doubled>> = vec![];
     for position in pingus1 {
@@ -99,16 +99,19 @@ pub fn get_field_levels_of(gamestate:&State, team1:Team) -> (f32) {
             }
         }
     }
-    return get_field_levels_from(gamestate, &this_fields, ).0;
+    return get_field_levels_from(gamestate, &this_fields, );
     
 }
 
 
 
-pub fn get_field_levels(gamestate:&State, my_turn:i32) -> (f32) {
-    let l1 = get_field_levels_of(gamestate, gamestate.current_team());
-    let l2 = get_field_levels_of(gamestate, gamestate.current_team().opponent());
-    return my_turn as f32 * (l1 - l2);
+pub fn get_field_levels(gamestate:&State, my_turn:i32) -> (f32, f32) {
+    let(l1,f1) = get_field_levels_of(gamestate, gamestate.current_team());
+    let (l2, f2) = get_field_levels_of(gamestate, gamestate.current_team().opponent());
+    return (
+        my_turn as f32 * (l1 - l2),
+        my_turn as f32 * (f1 - f2)
+    );
 }
 
 pub fn get_pengu_mobility(gamestate:&State, my_turn:i32) -> (f32) {
@@ -120,11 +123,12 @@ pub fn get_pengu_mobility(gamestate:&State, my_turn:i32) -> (f32) {
 
 pub fn evaluate(gamestate:&mut State, my_turn:i32, args:&Vec<f32>) -> f32 {
     let lateness = 40.0 / gamestate.turn() as f32;
+    let (f,c) = get_field_levels(gamestate, my_turn);
     return  args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32
-        +   args[2] * lateness.powf(args[3]) * get_field_levels(gamestate, my_turn)
+        +   args[2] * lateness.powf(args[3]) * f
         +   args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32
-        //+   args[6] * lateness.powf(args[7]) * get_field_levels(gamestate, my_turn);
-        //+   args[8] * lateness.powf(args[9]) * get_pengu_mobility(gamestate, my_turn)
+        //+   args[6] * lateness.powf(args[7]) * get_move_num(gamestate, my_turn)
+        //+   args[8] * lateness.powf(args[9]) * c
         ;
 }
 
@@ -140,16 +144,17 @@ pub fn fast_evaluate(gamestate:&State, my_turn:i32, args:&Vec<f32>) -> f32 {
 
 pub fn print_eval(gamestate:&mut State, my_turn:i32, args:&Vec<f32>) {
     let lateness = 40.0 / gamestate.turn() as f32;
+    let (f,c) = get_field_levels(gamestate, my_turn);
     info!("Arg 1: {}", args[0] * lateness.powf(args[1]) * get_fish_dif(gamestate, my_turn) as f32);
-    info!("Arg 2: {}", args[2] * lateness.powf(args[3]) * get_field_levels(gamestate, my_turn));
+    info!("Arg 2: {}", args[2] * lateness.powf(args[3]) * f);
     info!("Arg 3: {}", args[4] * lateness.powf(args[5]) * get_pengu(gamestate, my_turn) as f32);
-   // info!("Arg 4: {}", args[6] * lateness.powf(args[7]) * f2);
-    //info!("Arg 5: {}", args[8] * lateness.powf(args[9]) * get_pengu_mobility(gamestate, my_turn));      
+    info!("Arg 4: {}", args[6] * lateness.powf(args[7]) * get_move_num(gamestate, my_turn));
+    info!("Arg 5: {}", args[8] * lateness.powf(args[9]) * c);      
 }
 
 pub fn test_speed(gamestate:&State) {
     test_speed_single(get_fish_dif, gamestate);
-    test_speed_single(get_field_levels, gamestate);
+    test_speed_double(get_field_levels, gamestate);
     test_speed_single(get_pengu, gamestate);
     test_speed_single(get_pengu_mobility, gamestate);
    // test_speed_single(get_game_sim, gamestate);
@@ -175,4 +180,18 @@ fn test_speed_double(f:fn(gamestate:&State, my_turn:i32)->(f32, f32), gamestate:
     }
     let elapsed = now.elapsed();
     info!("Arg Speed: {:.2?}", elapsed);
+}
+
+
+pub fn get_vals_as_str(gamestate:&State, my_turn:i32) -> String {
+    let lateness =  gamestate.turn() as f32;
+    let (f,c) = get_field_levels(gamestate, my_turn);
+    return vec![
+        lateness.to_string(),
+        get_fish_dif(gamestate, my_turn).to_string(),
+        f.to_string(),
+        get_pengu(gamestate, my_turn).to_string(),
+        get_move_num(gamestate, my_turn).to_string(),
+        c.to_string()
+    ].join(";");
 }
