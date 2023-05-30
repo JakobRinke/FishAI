@@ -24,7 +24,7 @@ impl GameClientDelegate for OwnLogic {
         // 0.78                         0.5                 1/x                    Yes
         //                              0.846              4*(1-sigm(x))           Yes
         // 1.27                             1.022              4*(1-sigm(x))            No
-        let a: &[f32] = &[  5., -0.7, 3.6, 0.5, 5.7, 0.4, 1.5, 0.0, 0.9, 0.4  ];
+        //let a: &[f32] = &[  5., -0.7, 3.6, 0.5, 5.7, 0.4, 1.5, 0.0, 0.9, 0.4  ];
 
 
         //                                               4*(1-sigm(x))                        
@@ -35,7 +35,11 @@ impl GameClientDelegate for OwnLogic {
 
 
         //let a: &[f32] = &[0.21314, -0.30633, 0.18359, -0.66156, 0.10861, 0.42394, -0.00553, 0., 0., 0., 0.];
-        let a: &[f32] = &[0.24125, -0.38455, 0.3477, -0.96098, 0.05645, 0.9795, 0.0131];
+        // let a: &[f32] = &[0.24125, -0.38455, 0.3477, -0.96098, 0.05645, 0.9795, 0.0131];
+        
+        // slight worse
+       // let a:&[f32] = &[0.35426, -0.74566, 0.16515, -0.24146, 0.02485, -0.21712, 0.03494, 0.11935, 0.20956, -3.04939, 0.20956];
+       let a:&[f32] = &[0.48755, -0.44205, 0.39082, 2.4184, 0.01366, -2.81755, -0.01596, 3.63437, 0.1528, -4.69806, 0.0432, 4.57839, 0.00491, 2.51297, -0.03755, 2.0401, 0.00217, 0.35691];
 
         let b = a.to_vec();
 
@@ -43,7 +47,7 @@ impl GameClientDelegate for OwnLogic {
         info!("score : {}", evaluate(&mut(state.clone()), 1, &b));
 
         // print_eval(&mut(state.clone()), 1, &b);
-        if state.turn() > 2 {
+        if state.turn() > 4 {
             unsafe { 
                 data_vec.push(get_vals_as_str(state, 1));
                 team_name = _my_team.index() 
@@ -52,7 +56,7 @@ impl GameClientDelegate for OwnLogic {
 
 
         //test_speed_minmax(&b, &mut(state.clone()));
-        //test_speed(state);
+        // test_speed(state);
 
         // info!("val1: {}", get_field_levels(state, 1));
         // info!("val2: {}", get_field_levels_2(state, 1));
@@ -81,28 +85,28 @@ impl GameClientDelegate for OwnLogic {
 
 
     fn on_game_end(&mut self, _result: &socha_client_2023::protocol::GameResult) {
-        // unsafe {
-        //     let mut win = 0;
-        //     if let Some(winner) = _result.winner().clone() {
-        //         if winner.team().index() == team_name {
-        //             win = 1;
-        //         } else {
-        //             win = -1;
-        //         }
-        //     } 
-        //     for i in 0..data_vec.len() {
-        //         data_vec[i] += &(";".to_owned() + &win.to_string());
-        //     }
-        //     let mut f = OpenOptions::new()
-        //         .write(true)
-        //         .append(true)
-        //         .open(filename)
-        //         .unwrap();
-        //     for v in &data_vec {
-        //         if let Err(e) = writeln!(f, "{}", v) {
-        //             eprintln!("Couldn't write to file: {}", e);
-        //         };
-        //     }      
-        // }       
+        unsafe {
+            let mut win = 0;
+            if let Some(winner) = _result.winner().clone() {
+                if winner.team().index() == team_name {
+                    win = 1;
+                } else {
+                    win = -1;
+                }
+            } 
+            for i in 0..data_vec.len() {
+                data_vec[i] += &(";".to_owned() + &win.to_string());
+            }
+            let mut f = OpenOptions::new()
+                .write(true)
+                .append(true)
+                .open(filename)
+                .unwrap();
+            for v in &data_vec {
+                if let Err(e) = writeln!(f, "{}", v) {
+                    eprintln!("Couldn't write to file: {}", e);
+                };
+            }      
+        }       
     }
 }

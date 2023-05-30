@@ -5,9 +5,12 @@ use clap::Parser;
 use simplelog::{SimpleLogger, Config};
 use log::LevelFilter;
 use socha_client_2023::client::{GameClient, DebugMode};
+use socha_client_2023::scoring_funcs;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
+use neuroflow::io;
+use neuroflow::FeedForward;
 
 
 use logic::OwnLogic;
@@ -34,7 +37,8 @@ struct Args {
     #[clap(short = 'D', long)]
     debug_writer: bool,
 }
-const filename:&str  ="gamedata.csv";
+const filename:&str  ="gamedata_new_new.csv";
+
 fn main() {
     // Parse command line arguments
     let args = Args::parse();
@@ -48,6 +52,7 @@ fn main() {
         debug_writer: args.debug_writer,
     };
 
+    scoring_funcs::set_net(io::load("test.flow").unwrap());
     
     if !Path::new(&filename).exists() {
         let mut file = OpenOptions::new()
