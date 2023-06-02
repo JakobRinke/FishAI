@@ -1,6 +1,5 @@
 use array_tool::vec;
 use log::{info, debug};
-use rand::seq::SliceRandom;
 use socha_client_2023::{client::GameClientDelegate, game::{Move, Team, State}, minimax::{minimax, dyn_max, test_speed_minmax}};
 use std::{f32::INFINITY, fs::{File, OpenOptions}, path::Path, io::Write};
 use socha_client_2023::scoring_funcs::*;
@@ -34,25 +33,27 @@ impl GameClientDelegate for OwnLogic {
         //let a: &[f32] = &[0.35355, -0.44521, 0.1337, -0.11591, 0.02509, 0.21724, 0.06388, 0.1461, 0.22005, -2.76369];
 
 
-        //let a: &[f32] = &[0.21314, -0.30633, 0.18359, -0.66156, 0.10861, 0.42394, -0.00553, 0., 0., 0., 0.];
+       //
         // let a: &[f32] = &[0.24125, -0.38455, 0.3477, -0.96098, 0.05645, 0.9795, 0.0131];
         
         // slight worse
-       // let a:&[f32] = &[0.35426, -0.74566, 0.16515, -0.24146, 0.02485, -0.21712, 0.03494, 0.11935, 0.20956, -3.04939, 0.20956];
-       let a:&[f32] = &[0.48755, -0.44205, 0.39082, 2.4184, 0.01366, -2.81755, -0.01596, 3.63437, 0.1528, -4.69806, 0.0432, 4.57839, 0.00491, 2.51297, -0.03755, 2.0401, 0.00217, 0.35691];
+    //    let a: &[f32] = &[0.24356, -1.07312, 0.30759, -0.96476, 0.05974, 0.0479, 0.00374, 0.7071];
 
-        let b = a.to_vec();
+    //    let a: &[f32] = &[0.25709, -1.44345, 0.16938, -0.37743, 0.05424, 0.40424, 0.0814, -0.6753, 0.11017, -0.74305, 0.11017];
 
-        info!("round: {}", state.turn());
-        info!("score : {}", evaluate(&mut(state.clone()), 1, &b));
+
+        // let b = a.to_vec();
+
+        // info!("round: {}", state.turn());
+        // info!("score : {}", evaluate(&mut(state.clone()), 1, &b));
 
         // print_eval(&mut(state.clone()), 1, &b);
-        if state.turn() > 4 {
-            unsafe { 
-                data_vec.push(get_vals_as_str(state, 1));
-                team_name = _my_team.index() 
-            };
-        }
+        // if state.turn() > 4 {
+        //     unsafe { 
+        //         data_vec.push(get_vals_as_str(state, 1));
+        //         team_name = _my_team.index() 
+        //     };
+        // }
 
 
         //test_speed_minmax(&b, &mut(state.clone()));
@@ -65,12 +66,12 @@ impl GameClientDelegate for OwnLogic {
         if state.turn() <= 7 {
             //let chosen_move = find_best_start_move( *state);
             let mut s = state.clone();
-            let chosen_move = dyn_max( s, _my_team, b).unwrap();
+            let chosen_move = dyn_max( s, _my_team).unwrap();
             return chosen_move
         }
         else {
             let mut s = state.clone();
-            let k = dyn_max(s, _my_team, b);
+            let k = dyn_max(s, _my_team);
 
             //info!("Chose move {}", k.unwrap());
             return k.unwrap();

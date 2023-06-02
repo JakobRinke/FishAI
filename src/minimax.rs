@@ -1,16 +1,16 @@
-use std::{f32::INFINITY, vec, thread, time::Duration, sync::mpsc::{self}, cmp::min};
+use std::{vec, thread, time::Duration, sync::mpsc::{self}, cmp::min};
 use log::info;
 
-use crate::{game::{State, Team, Move, self}, scoring_funcs::{ evaluate, fast_evaluate}};
+use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate, fast_evaluate, get_fish_dif}};
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
-const BREAK_TIME:u128=1000;
+const BREAK_TIME:u128=1730;
 
 
 
 
-pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
+pub fn dyn_max(gamestate:State, my_team:Team) -> Option<Move>
 {
     let start = Instant::now();
 
@@ -21,10 +21,9 @@ pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
     while start.elapsed().as_millis() < BREAK_TIME && curdepth < 30 { 
         let (mtx, mrx) = mpsc::channel();
         let (stx, srx) = mpsc::channel();
-        let args_c = args.clone();
         let mut cf = controlfirst.clone();
         thread::spawn(move || {
-            let (m, _, cf) = minimax2(&mut (gamestate.clone()), my_team, -INFINITY, INFINITY, &args_c, curdepth, 2, cf);
+            let (m, _, cf) = minimax2(&mut (gamestate.clone()), my_team, f32::MIN, f32::MAX, curdepth, 2, cf);
             mtx.send(m);
             stx.send(cf)
         });
@@ -50,7 +49,7 @@ pub fn dyn_max(gamestate:State, my_team:Team, args:Vec<f32>) -> Option<Move>
 
 
 
-pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32,controlfirst:Vec<usize>) -> (Option<Move>, f32, Vec<usize>) {
+pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, depth:i32,controlfirst:Vec<usize>) -> (Option<Move>, f32, Vec<usize>) {
     let mut my_turn = -1;
     if gamestate.current_team().index()== my_team.index() {
         my_turn = 1;
@@ -61,14 +60,14 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
             return (None, 0.0, ZER_VEC)
         }
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, INFINITY, ZER_VEC) ;
+            return (None, f32::MAX-100.+get_fish_dif(gamestate, my_turn), ZER_VEC);
         }
         else {
-            return (None, -INFINITY, ZER_VEC);
+            return (None, f32::MIN+100.+get_fish_dif(gamestate, my_turn), ZER_VEC);
         };
     } 
     if depth <= 0 {
-        return (None, evaluate(gamestate, my_turn, args), ZER_VEC);
+        return (None, evaluate(gamestate, my_turn), ZER_VEC);
     }
 
    
@@ -77,10 +76,10 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     let mut value;
     if controlfirst.len()==0 {
         if my_turn == 1 {
-            value = -INFINITY;
+            value = f32::MIN;
             for m in possible_moves {
                 let f = gamestate.perform(m);
-                let l = minimax(gamestate, my_team, alpha, beta, args, depth-1, ZER_VEC).1;
+                let l = minimax(gamestate, my_team, alpha, beta, depth-1, ZER_VEC).1;
                 gamestate.undo_move(m, f, my_team);
                 if  l > value {
                     best_move = m;
@@ -93,10 +92,10 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
             }
         }
         else {
-            value = INFINITY;
+            value = f32::MAX;
             for m in possible_moves {
                 let f = gamestate.perform(m);
-                let l = minimax(gamestate, my_team, alpha, beta, args, depth-1, ZER_VEC).1;
+                let l = minimax(gamestate, my_team, alpha, beta, depth-1, ZER_VEC).1;
                 gamestate.undo_move(m, f, my_team.opponent());
                 
                 if  l < value {
@@ -112,11 +111,11 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
         return (Some(best_move), value, ZER_VEC);
     } else {
         let mut vals:Vec<f32> = vec![0.0; controlfirst.len()];
-        value = -INFINITY;
+        value = f32::MIN;
         let mut controlcop = controlfirst.clone();
         for iter in controlfirst {
             let f = gamestate.perform(possible_moves[iter]);
-            let l = minimax(gamestate, my_team, alpha, beta, args, depth-1, ZER_VEC).1;
+            let l = minimax(gamestate, my_team, alpha, beta, depth-1, ZER_VEC).1;
             vals[iter] = l;
             gamestate.undo_move(possible_moves[iter], f, my_team);
             if  l > value {
@@ -134,7 +133,7 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
     }
 }
 
-pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32, depth2:i32,controlfirst:Vec<usize>) -> (Option<Move>, f32, Vec<usize>) {
+pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, depth:i32, depth2:i32,controlfirst:Vec<usize>) -> (Option<Move>, f32, Vec<usize>) {
     let mut my_turn = -1;
     if gamestate.current_team().index()== my_team.index() {
         my_turn = 1;
@@ -145,14 +144,14 @@ pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32,
             return (None, 0.0, ZER_VEC)
         }
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, INFINITY, ZER_VEC) ;
+            return (None, f32::MAX-100.+get_fish_dif(gamestate, my_turn), ZER_VEC);
         }
         else {
-            return (None, -INFINITY, ZER_VEC);
+            return (None, f32::MIN+100.+get_fish_dif(gamestate, my_turn), ZER_VEC);
         };
     } 
     if depth <= 0 {
-        return (None, evaluate(gamestate, my_turn, args), ZER_VEC);
+        return (None, evaluate(gamestate, my_turn), ZER_VEC);
     }
 
    
@@ -161,10 +160,10 @@ pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32,
     let mut value;
     if controlfirst.len()==0 {
         if my_turn == 1 {
-            value = -INFINITY;
+            value = f32::MIN;
             for m in possible_moves {
                 let f = gamestate.perform(m);
-                let l = minimax(gamestate, my_team, alpha, beta, args, depth-1, ZER_VEC).1;
+                let l = minimax(gamestate, my_team, alpha, beta, depth-1, ZER_VEC).1;
                 gamestate.undo_move(m, f, my_team);
                 if  l > value {
                     best_move = m;
@@ -177,10 +176,10 @@ pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32,
             }
         }
         else {
-            value = INFINITY;
+            value = f32::MAX;
             for m in possible_moves {
                 let f = gamestate.perform(m);
-                let l = minimax(gamestate, my_team, alpha, beta, args, depth-1, ZER_VEC).1;
+                let l = minimax(gamestate, my_team, alpha, beta, depth-1, ZER_VEC).1;
                 gamestate.undo_move(m, f, my_team.opponent());
                 
                 if  l < value {
@@ -196,11 +195,11 @@ pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32,
         return (Some(best_move), value, ZER_VEC);
     } else {
         let mut vals:Vec<f32> = vec![0.0; controlfirst.len()];
-        value = -INFINITY;
+        value = f32::MIN;
         let mut controlcop = controlfirst.clone();
         for iter in controlfirst {
             let f = gamestate.perform(possible_moves[iter]);
-            let l = new_minimax(gamestate, my_team, alpha, beta, args, depth-1, depth2-1).1;
+            let l = new_minimax(gamestate, my_team, alpha, beta, depth-1, depth2-1).1;
             vals[iter] = l;
             gamestate.undo_move(possible_moves[iter], f, my_team);
             if  l > value {
@@ -221,7 +220,7 @@ pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32,
 
 
 
-pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, args:&Vec<f32>, depth:i32, depth2:i32) -> (Option<Move>, f32) {
+pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, depth:i32, depth2:i32) -> (Option<Move>, f32) {
     let mut my_turn = -1;
     if gamestate.current_team().index()== my_team.index() {
         my_turn = 1;
@@ -232,14 +231,14 @@ pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f
             return (None, 0.0)
         }
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, INFINITY) ;
+            return (None, f32::MAX-100.+get_fish_dif(gamestate, my_turn)) ;
         }
         else {
-            return (None, -INFINITY);
+            return (None, f32::MIN+100.+get_fish_dif(gamestate, my_turn));
         };
     } 
     if depth <= 0 {
-        return (None, evaluate(gamestate, my_turn, args));
+        return (None, evaluate(gamestate, my_turn));
     }
 
     
@@ -253,10 +252,10 @@ pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f
     let mut best_move =  possible_moves[0];
     let mut value;
         if my_turn == 1 {
-            value = -INFINITY;
+            value = f32::MIN;
             for m in possible_moves {
                 let f = gamestate.perform(m);
-                let l = new_minimax(gamestate, my_team, alpha, beta, args, depth-1, depth2-1).1;
+                let l = new_minimax(gamestate, my_team, alpha, beta, depth-1, depth2-1).1;
                 gamestate.undo_move(m, f, my_team);
                 if  l > value {
                     best_move = m;
@@ -269,10 +268,10 @@ pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f
             }
         }
         else {
-            value = INFINITY;
+            value = f32::MAX;
             for m in possible_moves {
                 let f = gamestate.perform(m);
-                let l = new_minimax(gamestate, my_team, alpha, beta, args, depth-1, depth2-1).1;
+                let l = new_minimax(gamestate, my_team, alpha, beta, depth-1, depth2-1).1;
                 gamestate.undo_move(m, f, my_team.opponent());
                 
                 if  l < value {
@@ -291,18 +290,18 @@ pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f
 
 
 
-pub fn test_speed_minmax(args_c:&Vec<f32>, gamestate:&State) {
+pub fn test_speed_minmax( gamestate:&State) {
     for i in 0..5 {
-        info!("DynMax Depth: {}", dyn_max_test(*gamestate, gamestate.current_team(), args_c.to_vec(), i))
+        info!("DynMax Depth: {}", dyn_max_test(*gamestate, gamestate.current_team(), i))
     }
 }
 
 
 
-pub fn evaluate_move(gamestate: &mut State, m:Move, my_turn:i32, args:&Vec<f32>) -> f32 {
+pub fn evaluate_move(gamestate: &mut State, m:Move, my_turn:i32) -> f32 {
     let t = gamestate.current_team();
     let f = gamestate.perform(m);
-    let d = evaluate(gamestate, my_turn, args);
+    let d = evaluate(gamestate, my_turn);
     gamestate.undo_move(m, f, t);
     return d;
 }
@@ -318,7 +317,7 @@ pub fn fast_evaluate_move(gamestate: &mut State, m:Move, my_turn:i32) -> f32 {
 }
 
 
-pub fn dyn_max_test(gamestate:State, my_team:Team, args:Vec<f32>, depth2:i32) -> i32
+pub fn dyn_max_test(gamestate:State, my_team:Team, depth2:i32) -> i32
 {
     let start = Instant::now();
 
@@ -329,10 +328,9 @@ pub fn dyn_max_test(gamestate:State, my_team:Team, args:Vec<f32>, depth2:i32) ->
     while start.elapsed().as_millis() < BREAK_TIME && curdepth < 30 { 
         let (mtx, mrx) = mpsc::channel();
         let (stx, srx) = mpsc::channel();
-        let args_c = args.clone();
         let mut cf = controlfirst.clone();
         thread::spawn(move || {
-            let (m, _, cf) = minimax2(&mut (gamestate.clone()), my_team, -INFINITY, INFINITY, &args_c, curdepth, depth2, cf);
+            let (m, _, cf) = minimax2(&mut (gamestate.clone()), my_team, f32::MIN, f32::MAX, curdepth, depth2, cf);
             mtx.send(m);
             stx.send(cf)
         });

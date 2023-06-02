@@ -9,8 +9,8 @@ use socha_client_2023::scoring_funcs;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
-use neuroflow::io;
-use neuroflow::FeedForward;
+// use neuroflow::io;
+// use neuroflow::FeedForward;
 
 
 use logic::OwnLogic;
@@ -52,7 +52,7 @@ fn main() {
         debug_writer: args.debug_writer,
     };
 
-    scoring_funcs::set_net(io::load("test.flow").unwrap());
+   // scoring_funcs::set_net(io::load("test.flow").unwrap());
     
     if !Path::new(&filename).exists() {
         let mut file = OpenOptions::new()
