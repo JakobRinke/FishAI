@@ -37,7 +37,7 @@ struct Args {
     #[clap(short = 'D', long)]
     debug_writer: bool,
 }
-const filename:&str  ="gamedata_new_new.csv";
+const filename:&str  ="gamedata_new_new_2.csv";
 
 fn main() {
     // Parse command line arguments

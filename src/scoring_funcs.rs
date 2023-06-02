@@ -4,7 +4,7 @@ use log::info;
 // use neuroflow::{FeedForward, io};
 use time::Instant;
 
-use crate::game::{State, Team, Vec2, Doubled};
+use crate::game::{State, Team, Vec2, Doubled, self};
 
 pub fn get_move_num(gamestate:&State, my_turn:i32) -> f32 {
     my_turn as f32  * (gamestate.possible_moves().len() as f32 - gamestate.opponent_moves().len() as f32)
@@ -195,6 +195,34 @@ fn get_pingu_enemy_dist_diff(gamestate:&State, my_turn:i32) -> f32 {
                 get_distances_to_enemy_of(&gamestate, gamestate.current_team().opponent()))
 }
 
+fn get_mobbing_of_pengu(gamestate:&State, spot:Vec2<Doubled>,enemy_team:Team) -> f32 {
+    let pingus = gamestate.pieces_of(enemy_team);
+    let mut d = 0;
+    for p1 in pingus {
+        if get_distance(p1.0, spot) < 3. {
+            d+=1;
+        }
+    }
+    if (d>=2) {
+        return 1.;
+    }
+   return 0.;
+}
+
+fn get_overall_mobbing(gamestate:&State, team:Team) -> f32 {
+    let pingus = gamestate.pieces_of(team);
+    let mut d = 0.0;
+    for p1 in pingus {
+        d += get_mobbing_of_pengu(gamestate, p1.0, team.opponent());
+    }
+    return d;
+}
+
+fn get_mobbing_val(gamestate:&State, my_turn:i32) -> f32 {
+    my_turn as f32 * ( get_overall_mobbing(&gamestate, gamestate.current_team()) -
+    get_overall_mobbing(&gamestate, gamestate.current_team().opponent()))
+}
+
 
 // pub static mut NN:Option<FeedForward> = None;
 
@@ -203,13 +231,30 @@ fn get_pingu_enemy_dist_diff(gamestate:&State, my_turn:i32) -> f32 {
 // }
 
 
-const args1: &[f32] = &[0.21314, -0.30633, 0.18359, -0.66156, 0.10861, 0.42394, -0.00553];
+// const args1: &[f32] = &[0.21314, -0.30633, 0.18359, -0.66156, 0.10861, 0.42394, -0.00553];
+// // const args1: &[f32] = &[0.23317, -1.07372, 0.27044, -0.61939, 0.06002, 0.74372, 0.03093, -0.9385, -0.01514, 0.20597]
+// pub fn evaluate(gamestate:&mut State, my_turn:i32) -> f32 {
+//     let lateness = 40.0 / gamestate.turn() as f32;
+//     return  args1[0] * lateness.powf(args1[1]) * get_fish_dif(gamestate, my_turn)
+//         +   args1[2] * lateness.powf(args1[3]) *  get_field_levels(gamestate, my_turn)
+//         +   args1[4] * lateness.powf(args1[5]) * get_pengu(gamestate, my_turn)
+//         //  +   args1[6] * lateness.powf(args[7]) * get_move_num(gamestate, my_turn)
+//         // +   args[12] * lateness.powf(args[13]) * get_controlled_fields(gamestate, my_turn)
+//         // +   args[8] * lateness.powf(args[9]) * get_pingu_dist_diff(gamestate, my_turn)
+//     //    +   args[10] * lateness.powf(args[11]) * get_pingu_enemy_dist_diff(gamestate, my_turn)
+//         ;
+// }
+
+const args1: &[f32] = &[0.31774516, 0.36627942, 0.3016686];
 // const args1: &[f32] = &[0.23317, -1.07372, 0.27044, -0.61939, 0.06002, 0.74372, 0.03093, -0.9385, -0.01514, 0.20597]
 pub fn evaluate(gamestate:&mut State, my_turn:i32) -> f32 {
-    let lateness = 40.0 / gamestate.turn() as f32;
-    return  args1[0] * lateness.powf(args1[1]) * get_fish_dif(gamestate, my_turn)
-        +   args1[2] * lateness.powf(args1[3]) *  get_field_levels(gamestate, my_turn)
-        +   args1[4] * lateness.powf(args1[5]) * get_pengu(gamestate, my_turn)
+    //let lateness = 40.0 / gamestate.turn() as f32;
+    return  args1[0] * get_fish_dif(gamestate, my_turn)
+        +   args1[1] * get_field_levels(gamestate, my_turn)
+        +   args1[2] * get_pengu(gamestate, my_turn) 
+        // +   args1[3] * get_move_num(gamestate, my_turn)
+        // +   args1[4] *  get_pingu_dist_diff(gamestate, my_turn)
+        // +   args1[5] * get_pingu_enemy_dist_diff(gamestate, my_turn)
         //  +   args1[6] * lateness.powf(args[7]) * get_move_num(gamestate, my_turn)
         // +   args[12] * lateness.powf(args[13]) * get_controlled_fields(gamestate, my_turn)
         // +   args[8] * lateness.powf(args[9]) * get_pingu_dist_diff(gamestate, my_turn)
@@ -299,12 +344,7 @@ fn get_model_args(gamestate:&State, my_turn:i32) -> Vec<f32> {
         get_fish_dif(gamestate, my_turn),
         f,
         get_pengu(gamestate, my_turn),
-        get_move_num(gamestate, my_turn),
-        // c, 
-        // g,
-        get_controlled_fields(gamestate, my_turn),
-        get_pingu_dist_diff(gamestate, my_turn), 
-        get_pingu_enemy_dist_diff(gamestate, my_turn)
+        get_mobbing_val(gamestate, my_turn),
     ]
 }
 

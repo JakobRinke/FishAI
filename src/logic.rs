@@ -48,12 +48,12 @@ impl GameClientDelegate for OwnLogic {
         // info!("score : {}", evaluate(&mut(state.clone()), 1, &b));
 
         // print_eval(&mut(state.clone()), 1, &b);
-        // if state.turn() > 4 {
-        //     unsafe { 
-        //         data_vec.push(get_vals_as_str(state, 1));
-        //         team_name = _my_team.index() 
-        //     };
-        // }
+        if state.turn() > 4 {
+            unsafe { 
+                data_vec.push(get_vals_as_str(state, 1));
+                team_name = _my_team.index() 
+            };
+        }
 
 
         //test_speed_minmax(&b, &mut(state.clone()));
