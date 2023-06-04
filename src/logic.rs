@@ -44,10 +44,10 @@ impl GameClientDelegate for OwnLogic {
 
         // let b = a.to_vec();
 
-        // info!("round: {}", state.turn());
-        // info!("score : {}", evaluate(&mut(state.clone()), 1, &b));
+        info!("round: {}", state.turn());
+        info!("score : {}", evaluate(&mut(state.clone()), 1));
 
-        // print_eval(&mut(state.clone()), 1, &b);
+        print_eval(&mut(state.clone()), 1);
         if state.turn() > 4 {
             unsafe { 
                 data_vec.push(get_vals_as_str(state, 1));

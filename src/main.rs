@@ -1,4 +1,5 @@
 mod logic;
+mod spots;
 use std::path::Path;
 use std::str::FromStr;
 use clap::Parser;
