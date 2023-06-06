@@ -44,19 +44,19 @@ impl GameClientDelegate for OwnLogic {
 
         // let b = a.to_vec();
 
-        info!("round: {}", state.turn());
-        info!("score : {}", evaluate(&mut(state.clone()), 1));
+        // info!("round: {}", state.turn());
+        // info!("score : {}", evaluate(&mut(state.clone()), 1));
 
-        print_eval(&mut(state.clone()), 1);
-        if state.turn() > 4 {
-            unsafe { 
-                data_vec.push(get_vals_as_str(state, 1));
-                team_name = _my_team.index() 
-            };
-        }
+        // print_eval(&mut(state.clone()), 1);
+        // if state.turn() > 4 {
+        //     unsafe { 
+        //         data_vec.push(get_vals_as_str(state, 1));
+        //         team_name = _my_team.index() 
+        //     };
+        // }
 
 
-        //test_speed_minmax(&b, &mut(state.clone()));
+        // test_speed_minmax( &mut(state.clone()));
         // test_speed(state);
 
         // info!("val1: {}", get_field_levels(state, 1));

@@ -5,7 +5,7 @@ use crate::{game::{State, Team, Move}, scoring_funcs::{ evaluate, fast_evaluate,
 use std::time::Instant;
 
 const ZER_VEC:Vec<usize> = vec![];
-const BREAK_TIME:u128=1000;
+const BREAK_TIME:u128=1730;
 
 
 
@@ -60,10 +60,10 @@ pub fn minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32, 
             return (None, 0.0, ZER_VEC)
         }
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, f32::MAX-100.+gamestate.fish(my_team) as f32, ZER_VEC);
+            return (None, f32::MAX-100.+get_fish_dif(gamestate, my_turn) as f32, ZER_VEC);
         }
         else {
-            return (None, f32::MIN+gamestate.fish(my_team) as f32, ZER_VEC);
+            return (None, f32::MIN+100.+get_fish_dif(gamestate, my_turn) as f32, ZER_VEC);
         };
     } 
     if depth <= 0 {
@@ -144,10 +144,10 @@ pub fn minimax2(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f32,
             return (None, 0.0, ZER_VEC)
         }
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, f32::MAX-100.+gamestate.fish(my_team) as f32, ZER_VEC);
+            return (None, f32::MAX-100.+get_fish_dif(gamestate, my_turn) as f32, ZER_VEC);
         }
         else {
-            return (None, f32::MIN+gamestate.fish(my_team) as f32, ZER_VEC);
+            return (None, f32::MIN+100.+get_fish_dif(gamestate, my_turn) as f32, ZER_VEC);
         };
     } 
     if depth <= 0 {
@@ -231,10 +231,10 @@ pub fn new_minimax(gamestate:&mut State, my_team:Team, mut alpha:f32, mut beta:f
             return (None, 0.0)
         }
         if gamestate.winner().unwrap().index() == my_team.index() {
-            return (None, f32::MAX-100.+gamestate.fish(my_team) as f32);
+            return (None, f32::MAX-100.+get_fish_dif(gamestate, my_turn) as f32);
         }
         else {
-            return (None, f32::MIN+gamestate.fish(my_team) as f32);
+            return (None, f32::MIN+100.+get_fish_dif(gamestate, my_turn) as f32);
         };
     } 
     if depth <= 0 {

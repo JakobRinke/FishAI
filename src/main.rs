@@ -1,13 +1,10 @@
 mod logic;
-mod spots;
 use std::path::Path;
 use std::str::FromStr;
 use clap::Parser;
 use simplelog::{SimpleLogger, Config};
 use log::LevelFilter;
 use socha_client_2023::client::{GameClient, DebugMode};
-use socha_client_2023::scoring_funcs;
-use std::fs;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 // use neuroflow::io;

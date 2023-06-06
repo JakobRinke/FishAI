@@ -1,11 +1,9 @@
 use std::{collections::HashMap, cmp::{max, min}};
-use crate::spots;
-
 use log::info;
 // use neuroflow::{FeedForward, io};
 use time::Instant;
 
-use crate::game::{State, Team, Vec2, Doubled, self};
+use crate::{game::{State, Team, Vec2, Doubled, self}, spots::get_spot_scores};
 
 pub fn get_move_num(gamestate:&State, my_turn:i32) -> f32 {
     my_turn as f32  * (gamestate.possible_moves().len() as f32 - gamestate.opponent_moves().len() as f32)
@@ -233,26 +231,30 @@ fn get_mobbing_val(gamestate:&State, my_turn:i32) -> f32 {
 
 
 // const args1: &[f32] = &[0.21314, -0.30633, 0.18359, -0.66156, 0.10861, 0.42394, -0.00553];
-// const args1: &[f32] = &[5., -0.7, 3.6, 0.5, 5.7, 0.4, 1.5];
-const args1: &[f32] = &[5., -0.7, 3.6, 0.5, 5.7, 0.4, 1.5, 1.2, 0.5];
+// const args1: &[f32] = &[5., -0.7, 3.6, 0.5, 5.7, 0.4, 0.0, 0.];
+// Tf train
+const args1: &[f32] = &[0.34631, -0.58898, 0.39159, -0.70054, 0.06327, -0.52274, -0.01965, 0.01723,];
+// const args1: &[f32] = &[4.5, -0.75, 5.7, 0.3, 4.7, 0.7, 2.7, 0.5];
+// const args1:&[f32] = &[0.33479, -0.30633, 0.39825, -0.66156, 0.04881, 0.42394, 0.13, 0.5];
+// const args1: &[f32] = &[5., -0.7, 3.6, 0.3, 5.7, 0.4, 1.5, 1.6, 0.6];
 pub fn evaluate(gamestate:&mut State, my_turn:i32) -> f32 {
-    let lateness = 40.0 / gamestate.turn() as f32;
+    let lateness:f32 = 40.0 / gamestate.turn() as f32;
     return  args1[0] * lateness.powf(args1[1]) * get_fish_dif(gamestate, my_turn)
         +   args1[2] * lateness.powf(args1[3]) *  get_field_levels(gamestate, my_turn)
         +   args1[4] * lateness.powf(args1[5]) * get_pengu(gamestate, my_turn)  
-        +   args1[6] * lateness.powf(args1[7]) * get_mobbing_val(gamestate, my_turn)  
+        +   args1[6] * lateness.powf(args1[7]) * get_spot_scores(gamestate, my_turn)  
         // +   args1[6] * lateness.powf(args1[7]) * get_move_num(gamestate, my_turn)
         ;
 }
 
-// const args1: &[f32] = &[ 0.18413275, 0.22656713, 0.13484319, -0.0253746];
+// const args1: &[f32] = &[ 0.27510019,  0.26416571,  0.06679495, 0.0832137, 0., 0., 0., 0.];
 // // const args1: &[f32] = &[0.23317, -1.07372, 0.27044, -0.61939, 0.06002, 0.74372, 0.03093, -0.9385, -0.01514, 0.20597]
 // pub fn evaluate(gamestate:&mut State, my_turn:i32) -> f32 {
 //     //let lateness = 40.0 / gamestate.turn() as f32;
 //     return  args1[0] * get_fish_dif(gamestate, my_turn)
 //         +   args1[1] * get_field_levels(gamestate, my_turn)
 //         +   args1[2] * get_pengu(gamestate, my_turn) 
-//         +   args1[3] * get_mobbing_val(gamestate, my_turn)
+//         +   args1[3] * get_spot_scores(gamestate, my_turn)
 //         // +   args1[3] * get_move_num(gamestate, my_turn)
 //         // +   args1[4] *  get_pingu_dist_diff(gamestate, my_turn)
 //         // +   args1[5] * get_pingu_enemy_dist_diff(gamestate, my_turn)
@@ -296,8 +298,8 @@ pub fn print_eval(gamestate:&mut State, my_turn:i32) {
     info!("Arg 1: {}", args1[0] * lateness.powf(args1[1]) * get_fish_dif(gamestate, my_turn) as f32);
     info!("Arg 2: {}", args1[2] * lateness.powf(args1[3]) * f);
     info!("Arg 3: {}", args1[4] * lateness.powf(args1[5]) * get_pengu(gamestate, my_turn) as f32);
-    info!("Arg 4: {}", args1[6] * lateness.powf(args1[7]) * get_move_num(gamestate, my_turn));
-    
+    // info!("Arg 4: {}", args1[6] * lateness.powf(args1[7]) * get_move_num(gamestate, my_turn));
+    info!("Arg 5: {}", args1[6] * lateness.powf(args1[7]) * get_spot_scores(gamestate, my_turn));
     // info!("Arg 5: {}", args1[8] * lateness.powf(args1[9]) * get_pingu_dist_diff(gamestate, my_turn));
     // info!("Arg 6: {}", args1[10] * lateness.powf(args1[11]) * get_mobbing_val(gamestate, my_turn));
     //info!("Arg 5: {}", args[8] * lateness.powf(args[9]) * c);      
@@ -349,7 +351,7 @@ fn get_model_args(gamestate:&State, my_turn:i32) -> Vec<f32> {
         get_fish_dif(gamestate, my_turn),
         f,
         get_pengu(gamestate, my_turn),
-        get_mobbing_val(gamestate, my_turn),
+        get_spot_scores(gamestate, my_turn),
     ]
 }
 
