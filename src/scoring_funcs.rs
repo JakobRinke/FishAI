@@ -1,4 +1,4 @@
-use std::{collections::HashMap, cmp::{max, min}};
+use std::{collections::{HashMap, HashSet}, cmp::{max, min}};
 use log::info;
 // use neuroflow::{FeedForward, io};
 use time::Instant;
@@ -234,17 +234,58 @@ fn get_mobbing_val(gamestate:&State, my_turn:i32) -> f32 {
 // const args1: &[f32] = &[5., -0.7, 3.6, 0.5, 5.7, 0.4, 0.0, 0.];
 // Tf train
 const args1: &[f32] = &[0.34631, -0.58898, 0.39159, -0.70054, 0.06327, -0.52274, -0.01965, 0.01723,];
-// const args1: &[f32] = &[4.5, -0.75, 5.7, 0.3, 4.7, 0.7, 2.7, 0.5];
-// const args1:&[f32] = &[0.33479, -0.30633, 0.39825, -0.66156, 0.04881, 0.42394, 0.13, 0.5];
-// const args1: &[f32] = &[5., -0.7, 3.6, 0.3, 5.7, 0.4, 1.5, 1.6, 0.6];
-pub fn evaluate(gamestate:&mut State, my_turn:i32) -> f32 {
-    let lateness:f32 = 40.0 / gamestate.turn() as f32;
-    return  args1[0] * lateness.powf(args1[1]) * get_fish_dif(gamestate, my_turn)
-        +   args1[2] * lateness.powf(args1[3]) *  get_field_levels(gamestate, my_turn)
-        +   args1[4] * lateness.powf(args1[5]) * get_pengu(gamestate, my_turn)  
-        +   args1[6] * lateness.powf(args1[7]) * get_spot_scores(gamestate, my_turn)  
-        // +   args1[6] * lateness.powf(args1[7]) * get_move_num(gamestate, my_turn)
-        ;
+// // const args1: &[f32] = &[4.5, -0.75, 5.7, 0.3, 4.7, 0.7, 2.7, 0.5];
+// // const args1:&[f32] = &[0.33479, -0.30633, 0.39825, -0.66156, 0.04881, 0.42394, 0.13, 0.5];
+// // const args1: &[f32] = &[5., -0.7, 3.6, 0.3, 5.7, 0.4, 1.5, 1.6, 0.6];
+// pub fn evaluate(gamestate:&mut State, my_turn:i32) -> f32 {
+//     let lateness:f32 = 40.0 / gamestate.turn() as f32;
+//     return  args1[0] * lateness.powf(args1[1]) * get_fish_dif(gamestate, my_turn)
+//         +   args1[2] * lateness.powf(args1[3]) *  get_field_levels(gamestate, my_turn)
+//         +   args1[4] * lateness.powf(args1[5]) * get_pengu(gamestate, my_turn)  
+//         +   args1[6] * lateness.powf(args1[7]) * get_spot_scores(gamestate, my_turn)  
+//         // +   args1[6] * lateness.powf(args1[7]) * get_move_num(gamestate, my_turn)
+//         ;
+// }
+
+pub fn evaluate(s:&State, my_turn:i32) -> f32 
+{
+    let mut my_team = s.current_team();
+    if my_turn == -1 {
+        my_team = s.current_team().opponent();
+    }
+    let fishes = |team: Team| -> [u8; 64] { 
+        let mut steps: [u8; 64] = [u8::MAX; 64];
+        let mut queue: Vec<Vec2<Doubled>> = s.board().penguins().filter(|p| p.1 == team).map(|p| p.0).collect();
+        let mut visited: HashSet<Vec2<Doubled>> = HashSet::new();
+        let mut step = 2;
+        while !queue.is_empty() {
+            let mut temp: Vec<Vec2<Doubled>> = Vec::new();
+            for f in queue {
+                for m in s.board().possible_moves_from(f) {
+                    if !visited.contains(&m.to()) {
+                        visited.insert(m.to());
+                        steps[(m.to().y*8+m.to().x/2) as usize] = step;
+                        temp.push(m.to());
+                    }
+                }
+            }
+            queue = temp;
+            step += 1;
+        }
+        steps
+    };
+    let steps_us = fishes(my_team);
+    let steps_opponent = fishes(my_team.opponent());
+    let mut fish_us = s.fish(my_team) as f64;
+    let mut fish_opponent = s.fish(my_team.opponent()) as f64;
+    for (c,f) in s.board().fields() {
+        if f.is_empty() {continue;}
+        let i = (c.y*8+c.x/2) as usize;
+        let fish = f.fish() as f64;
+        if steps_us[i] > steps_opponent[i] {fish_opponent += fish;} else if steps_us[i] < steps_opponent[i] {fish_us += fish;}
+    }
+    let result = fish_us - fish_opponent;
+    return (result * 2. - 1.) as f32;
 }
 
 // const args1: &[f32] = &[ 0.27510019,  0.26416571,  0.06679495, 0.0832137, 0., 0., 0., 0.];
